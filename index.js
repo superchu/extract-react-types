@@ -11,13 +11,12 @@ const {
   resolveImportFilePathSync
 } = require('babel-file-loader');
 const { isFlowIdentifier } = require('babel-flow-identifiers');
-const { getTypeBinding } = require("babel-type-scopes");
+const { getTypeBinding } = require('babel-type-scopes');
 const { getIdentifierKind } = require('babel-identifiers');
 const { isReactComponentClass } = require('babel-react-components');
 const createBabylonOptions = require('babylon-options');
 const t = require('babel-types');
 const { normalizeComment } = require('babel-normalize-comments');
-const { sync: resolveSync } = require('resolve');
 
 const matchExported = require('./matchExported');
 const converters = {};
@@ -586,7 +585,6 @@ converters.VariableDeclarator = (path, context) /*: K.Initial*/ => {
 converters.Identifier = (path, context) /*: K.Id*/ => {
   let kind = getIdentifierKind(path);
   let name = path.node.name;
-
   if (context.mode === 'value') {
     let res = {};
     if (kind === 'reference') {
@@ -667,12 +665,12 @@ converters.Identifier = (path, context) /*: K.Id*/ => {
       } else if (isTsIdentifier(path)) {
         let foundPath = path.scope.getBinding(name);
         if (
-          foundPath && (
-          foundPath.path.isImportDefaultSpecifier() ||
-          foundPath.path.isImportNamespaceSpecifier() ||
-          foundPath.path.isImportSpecifier())
+          foundPath &&
+          (foundPath.path.isImportDefaultSpecifier() ||
+            foundPath.path.isImportNamespaceSpecifier() ||
+            foundPath.path.isImportSpecifier())
         ) {
-          // Note: 
+          // Note:
           // We cannot resolve the imported type properly at this time,
           // so we'll return the name of the type for now.
           // return {
@@ -685,8 +683,8 @@ converters.Identifier = (path, context) /*: K.Id*/ => {
         let tsBinding = getTypeBinding(path, name);
         if (!tsBinding) {
           return {
-            kind: "id",
-            name,
+            kind: 'id',
+            name
           };
         };
         bindingPath = tsBinding.path.parentPath;
@@ -710,10 +708,13 @@ converters.Identifier = (path, context) /*: K.Id*/ => {
 };
 
 function isTsIdentifier(path) {
-  if (path.parentPath.type === "TSTypeReference" && getIdentifierKind(path) === "reference") {
+  if (
+    path.parentPath.type === 'TSTypeReference' &&
+    getIdentifierKind(path) === 'reference'
+  ) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -813,11 +814,12 @@ converters.TSVoidKeyword = (path) /*: K.Void*/ => {
 };
 
 converters.TSPropertySignature = (path, context) => {
-  return { kind: 'void' };
+  return convert(path.get('typeAnnotation'), context);
 };
 
 converters.TSUndefinedKeyword = (path, context) => {
   return { kind: 'undefined' };
+  
 };
 
 converters.TSTypeLiteral = (path, context) /*: K.Obj*/ => {
@@ -831,9 +833,7 @@ converters.TSTypeLiteral = (path, context) /*: K.Obj*/ => {
   let members = path.get('members');
 
   members.forEach(memberPath => {
-    result.members.push(
-      convert(memberPath.get('typeAnnotation').get('typeAnnotation'), context)
-    );
+    result.members.push(convert(memberPath, context));
   });
 
   return result;
@@ -841,7 +841,7 @@ converters.TSTypeLiteral = (path, context) /*: K.Obj*/ => {
 
 converters.TSTypeAliasDeclaration = (path, context) => /* K.Obj */ {
   return convert(path.get('typeAnnotation'), context);
-}
+};
 
 converters.TSLiteralType = (path) /*: K.Literal*/ => {
   return {
@@ -873,13 +873,13 @@ converters.TSTypeReference = (path, context) => {
         }
       }
       // value: convert(typeParameters, context)
-    }
+    };
   }
 
   return {
     kind: 'generic',
     value: convert(path.get('typeName'), context)
-  }
+  };
 };
 
 converters.TSUnionType = (path, context) /*: K.Union*/ => {
@@ -897,19 +897,12 @@ converters.TSTupleType = (path, context) /*: K.Tuple*/ => {
 };
 
 converters.TSFunctionType = (path, context) /*: K.Func*/ => {
-  // const parameters = path.get('parameters').map(p => convert(p, context));
-  // const returnType = convert(
-  //   path.get('typeAnnotation').get('typeAnnotation'),
-  const parameters = path.get('parameters').map(p => convertParameter(p, context));
-  const returnType = convert(
-    path.get('typeAnnotation'),
-    context
-  );
+  const parameters = path
+    .get('parameters')
+    .map(p => convertParameter(p, context));
+  const returnType = convert(path.get('typeAnnotation'), context);
 
   return {
-    // kind: 'function',
-    // returnType,
-    // parameters
     kind: 'generic',
     value: {
       kind: 'function',
@@ -930,15 +923,13 @@ converters.TSInterfaceBody = (path, context) => {
     const key = convert(p.get('key'), context);
     const value = convert(p.get('typeAnnotation'), context);
     const optional = p.node.optional || false;
-    
-    members.push(
-      {
-        kind: 'property',
-        key,
-        value,
-        optional,
-      }
-    );
+
+    members.push({
+      kind: 'property',
+      key,
+      value,
+      optional
+    });
   });
 
   return {
@@ -961,7 +952,7 @@ converters.TSQualifiedName = (path, context) => {
       kind: 'id',
       name: `${left.name}.${right.name}`,
     }
-  }
+  };
 };
 
 converters.TSEnumDeclaration = (path, context) => {
@@ -970,8 +961,8 @@ converters.TSEnumDeclaration = (path, context) => {
     const member = convert(p, context);
     return {
       kind: member.kind,
-      name: `${name}.${member.name}`,
-    }
+      name: `${name}.${member.name}`
+    };
   });
   return { kind: 'union', types };
 };
@@ -981,10 +972,6 @@ converters.TSEnumMember = (path, context) => {
 };
 
 converters.TSArray = (path, context) => {
-  return { kind: 'any' };
-};
-
-converters.TSArrayType = (path, context) => {
   return { kind: 'any' };
 };
 
@@ -998,7 +985,16 @@ converters.ImportNamespaceSpecifier = (path, context) => {
 
 converters.undefined = (path, context) => {
   return { kind: 'any' };
+}
+
+converters.TSArrayType = (path, context) /*: K.ArrayType */ => {
+  return convert(path.get('elementType'), context);
 };
+
+converters.TSIntersectionType = (path, context) /*: K.Intersection*/  => {
+  const types = path.get('types').map(type => convert(type, context));
+  return { kind: 'intersection', types } 
+}
 
 converters.ObjectTypeSpreadProperty = (path, context) /*: K.Spread*/ => {
   return {

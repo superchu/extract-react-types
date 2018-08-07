@@ -2743,6 +2743,33 @@ Object {
 }
 `;
 
+exports[`ts array 2`] = `
+Object {
+  "classes": Array [
+    Object {
+      "kind": "object",
+      "members": Array [
+        Object {
+          "kind": "string",
+        },
+        Object {
+          "kind": "generic",
+          "value": Object {
+            "kind": "string",
+          },
+        },
+      ],
+      "name": Object {
+        "kind": "id",
+        "name": "Component",
+        "type": null,
+      },
+    },
+  ],
+  "kind": "program",
+}
+`;
+
 exports[`ts boolean 1`] = `
 Object {
   "classes": Array [
@@ -2917,6 +2944,50 @@ Object {
             },
           },
         ],
+      },
+    },
+  ],
+  "kind": "program",
+}
+`;
+
+exports[`ts intersection 1`] = `
+Object {
+  "classes": Array [
+    Object {
+      "kind": "object",
+      "members": Array [
+        Object {
+          "kind": "generic",
+          "value": Object {
+            "kind": "intersection",
+            "types": Array [
+              Object {
+                "kind": "generic",
+                "value": Object {
+                  "kind": "string",
+                },
+              },
+              Object {
+                "kind": "generic",
+                "value": Object {
+                  "kind": "boolean",
+                },
+              },
+              Object {
+                "kind": "generic",
+                "value": Object {
+                  "kind": "number",
+                },
+              },
+            ],
+          },
+        },
+      ],
+      "name": Object {
+        "kind": "id",
+        "name": "Component",
+        "type": null,
       },
     },
   ],

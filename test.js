@@ -336,6 +336,7 @@ const TESTS = [
   {
     name: 'ts array',
     typeSystem: 'typescript',
+    only: true,
     code: `
     class Component extends React.Component<{foo: Array<number>}> {
       // ...
@@ -877,6 +878,26 @@ const TESTS = [
 
       class Component extends React.Component<Props> {
       }
+    `
+  },
+  {
+    name: 'ts array',
+    typeSystem: 'typescript',
+    code: `
+      type Bar = string
+      class Component extends React.Component<{ a: string[], b: Bar[] }> {}
+    `
+  },
+  {
+    name: 'ts intersection',
+    typeSystem: 'typescript',
+    code: `
+      type Bar = string
+      type Foo = boolean
+      type Baz = number
+      
+      type Example = Bar & Foo & Baz
+      class Component extends React.Component<{ a: Example }> {}
     `
   }
 ];
